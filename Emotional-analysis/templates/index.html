@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在线影评情感分析系统</title>
+    <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+    <link rel="stylesheet" href="../static/bootstrap.css">
+</head>
+<body>
+    <div style="padding: 15%;" id="pre">
+        <!-- panel 面板 -->
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h3 class="panel-title">情感分析</h3>
+            </div>
+            <form class="panel-body" id="cmt-form">
+                <div>评论文本：</div>
+                <input type="text" class="form-control" id="text">
+                <button type="submit" class="btn btn-primary" style="margin-top: 5px">提交</button>
+            </form>
+
+            <form class="panel-body" id="file-form">
+                <div>导入单部电影评论：</div>
+                <div class="input-group">
+                <input id='location' class="form-control" onclick="$('#i-file').click();">
+                    <label class="input-group-btn">
+                        <input type="button" id="i-check" value="浏览文件" class="btn btn-primary" onclick="$('#i-file').click();">
+                    </label>
+                </div>
+                <input type="file" name="file" id='i-file'  accept=".csv" onchange="$('#location').val($('#i-file').val());" style="display: none">
+                <button type="submit" class="btn btn-primary" id="file-submitted" style="margin-top: 5px">提交</button>
+            </form>
+
+
+        </div>
+    </div>
+
+
+
+    <script>
+        function send(text) {
+            $.ajax({
+                url: "/predict",
+                type: "post",
+                dataType: "json",
+                //data为要传递给后端的数据，使用JSON.stringify()转换为json格式
+                data: JSON.stringify({
+                    text: text
+                }),
+                success: function (res) {
+                    if (res.status === 'error') {
+                        return alert("分析失败，请重试")
+                    }
+                    alert("这是一条" + res['result'])
+                    console.log(res['result'])
+                }
+            })
+        }
+
+        $('#cmt-form').submit(function (e) {
+            e.preventDefault()
+            send($("#text").val())
+        })
+
+        $("#file-submitted").click(function(){
+            var formData = new FormData(document.querySelector("#file-form"));//获取form值
+			$.ajax({
+				url: "/Single",
+				type: "POST",
+				data: formData,
+				processData: false,  // 不处理数据
+				contentType: false,   // 不设置内容类型
+				success: function (res) {
+                    if (res.status === 'error') {
+                        return alert("分析失败，请重试")
+                    }
+                    alert("此电影的评分为 " + res['result']+ " 分")
+                    console.log(res['result'])
+                }
+			});
+
+        });
+    </script>
+</body>
+</html>
